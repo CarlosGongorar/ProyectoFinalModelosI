@@ -25,6 +25,8 @@ class Player:
         self.player_acceleration = 0.2
         self.player_width = 45
         self.player_height = 51
+        self.observers = [];
+        self.score = 0;
         self.player_on_ground = False;
 
     def load_image(self): # Cargado de imagen
@@ -37,20 +39,26 @@ class Player:
     def moveRight(self):
         self.player_x += 2;
     
-    def moveX(self):
-        self.player_x += self.player_speed
-    
     def moveLeft(self):
         self.player_x -= 2;
     
     def jump(self):
         if self.player_on_ground:
             self.player_speed = -6;
-
-    def moveY(self):
-        self.player_y += self.player_speed
-        if not self.player_on_ground:
-            self.player_speed += self.player_acceleration
+    
+    def colectCoin(self):
+        self.score += 1;
+        self.notify_observers();
+    
+    def add_observer(self, observer):
+        self.observers.append(observer);
+    
+    def remove_observer(self, observer):
+        self.observers.remove(observer);
+    
+    def notify_observers(self):
+        for observer in self.observers:
+            observer.update(self.score);
 
     # Retorna atributo imagen
     def getImage(self):

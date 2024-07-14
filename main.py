@@ -1,13 +1,15 @@
 import pygame
 from screenClass import GameScreen
 from playerClass import Player
-from classControls import InputHandler, CommandJumpMove, CommandLeftMove, CommandRightMove
-
+from controlsClass import InputHandler, CommandJumpMove, CommandLeftMove, CommandRightMove
+from observerClass import CoinPanel
 # Main
 
 screen_manager = GameScreen(700, 500, (181, 226, 245), "G&G Game"); # Game
 clock = pygame.time.Clock()
 player = Player();
+coinpanel = CoinPanel(player)
+
 
 # KEY BIND
 input_handler = InputHandler();
@@ -22,6 +24,7 @@ player_acceleration = player.getPlayerAcceleration()
 player_width = player.getPlayerWidth()
 player_height = player.getPlayerHeight()
 
+score = 0
 # Platform Delete--------------------------------------------
 platforms = [
     pygame.Rect(100, 300, 400, 50), # Platform
@@ -29,6 +32,16 @@ platforms = [
     pygame.Rect(450, 250, 50, 50), # Platform
 
 ]
+
+# Coins ---------------------------------------------------------------- Put in class
+coin_image = pygame.image.load("./images/coin/coin_0.png")
+coins = [
+        pygame.Rect(100, 200, 23, 23),
+        pygame.Rect(300, 200, 23, 23),
+        pygame.Rect(500, 200, 23, 23),
+        pygame.Rect(200, 100, 23, 23),
+        pygame.Rect(400, 100, 23, 23)
+    ]
 
 # Loop
 running = True
@@ -53,7 +66,6 @@ while running:
     if keys[pygame.K_w] and player_on_ground:
         player_speed = -6
         input_handler.handleInput(pygame.K_w)
-
 
     # Horiazontal movement
     new_player_rect = pygame.Rect(new_player_x, player_y, player_width, player_height)
@@ -85,18 +97,24 @@ while running:
                 player_y = p[1] - player_height
                 player_on_ground = True
             break
-
     if y_collision == False:
         player_y = new_player_y
 
+    player_rect = pygame.Rect(player_x, player_y, player_width, player_height)
+    
+    for c in coins:
+        if c.colliderect(player_rect):
+            coins.remove(c)
+            player.colectCoin()
 
     screen_manager.getScreen().fill((181, 226, 245)) # Limpia el fondo
-
 
     # Platforms
     for p in platforms:
         pygame.draw.rect(screen_manager.getScreen(), (209, 206, 50), p)
 
+    for c in coins:
+        screen_manager.getScreen().blit(coin_image,(c[0],c[1]))
 
     screen_manager.getScreen().blit(player.getImage(), (player_x, player_y)) # Player
     screen_manager.updateDisplay() # Update display
