@@ -5,7 +5,8 @@ from controlsClass import InputHandler, CommandJumpMove, CommandLeftMove, Comman
 from observerClass import CoinPanel, LivesPanel
 from enemieClass import FactoryEnemySpike
 from gameStateClass import Game, PlayState, LoseState, WinState
-from animationPlayerClass import PlayerDirection, Left, Right
+from dinamicClass import PlayerDirection, Left, Right, PlayerAction, IdleState, WalkingState, Animation
+from coinClass import CoinFactory
 # Main
 
 game = Game();
@@ -18,14 +19,22 @@ clock = pygame.time.Clock()
 
 player = Player();
 playerdirection = PlayerDirection();
-playerLeft = Left()
-playerRight = Right()
-playerdirection.change_direction(playerRight)
+playeraction = PlayerAction();
+playerWalking = WalkingState();
+playerIdle = IdleState();
+playerLeft = Left();
+playerRight = Right();
 
-coinpanel = CoinPanel(player)
-livespanel = LivesPanel(player)
+playerdirection.change_direction(playerRight);
+playeraction.change_action(playerIdle);
+
+coinpanel = CoinPanel(player);
+livespanel = LivesPanel(player);
+
 spikeEnemyFactory = FactoryEnemySpike();
-font = pygame.font.Font(pygame.font.get_default_font(), 24)
+coinFactory = CoinFactory();
+font = pygame.font.Font(pygame.font.get_default_font(), 24);
+
 
 # KEY BIND
 input_handler = InputHandler();
@@ -48,14 +57,24 @@ platforms = [
     ]
 
 # Coins ------------------------------------------------------------------------
-coin_image = pygame.image.load("./images/coin/coin_0.png")
+coin1 = coinFactory.create("gold", 100, 200, 23, 23);
+coin2 = coinFactory.create("gold", 300, 200, 23, 23);
+coin3 = coinFactory.create("gold", 500, 200, 23, 23);
+coin4 = coinFactory.create("gold", 200, 100, 23, 23);
+coin5 = coinFactory.create("gold", 400, 100, 23, 23);
+
 coins = [
-    pygame.Rect(100, 200, 23, 23),
-    pygame.Rect(300, 200, 23, 23),
-    pygame.Rect(500, 200, 23, 23),
-    pygame.Rect(200, 100, 23, 23),
-    pygame.Rect(400, 100, 23, 23)
+    coin1, 
+    coin2, 
+    coin3,
+    coin4, 
+    coin5
     ]
+
+coin_animator = Animation(coin1.getAnimation());
+player_walkinganimator = Animation(player.getWalkingAnimation());
+player_idleanimator = Animation(player.getIdleAnimation());
+
 # ----------------------------- Lives ------------------------------------------
 lives_image = pygame.image.load("./images/lives/heart.png")
 lives = livespanel.showStatus()
@@ -81,21 +100,37 @@ while gameState is game.execute_action():
     new_player_x = player_x
     new_player_y = player_y
 
+    #-------------------------- Updaters -------------------------
+    coin_animator.update()
+    player_idleanimator.update()
+    player_walkinganimator.update()
+    screen_manager.updateDisplay()
+
     #----------------------- Controls------------------------
 
     keys = pygame.key.get_pressed();
 
     if keys[pygame.K_a]:
         playerdirection.change_direction(playerLeft)
+        playeraction.change_action(playerWalking)
         new_player_x -= 2
         input_handler.handleInput(pygame.K_a)
+        
+
     if keys[pygame.K_d]:
         playerdirection.change_direction(playerRight)
+        playeraction.change_action(playerWalking)
         new_player_x += 2
         input_handler.handleInput(pygame.K_d)
+
+    if not keys[pygame.K_a] and not keys[pygame.K_d]:
+        playeraction.change_action(playerIdle)
+
     if keys[pygame.K_w] and player_on_ground:
         player_speed = -6
         input_handler.handleInput(pygame.K_w)
+
+    playeraction.execute_action();
 
     # Horiazontal movement
     new_player_rect = pygame.Rect(new_player_x, player_y, player_width, player_height)
@@ -139,7 +174,8 @@ while gameState is game.execute_action():
     # Coins Colition
     player_rect = pygame.Rect(player_x, player_y, player_width, player_height)
     for c in coins:
-        if c.colliderect(player_rect):
+        coinColition = c.render();
+        if coinColition.colliderect(player_rect):
             coins.remove(c)
             player.colectCoin()
             if coinpanel.showStatus() == 5:
@@ -169,7 +205,9 @@ while gameState is game.execute_action():
     # Coins
 
     for c in coins:
-        screen_manager.getScreen().blit(coin_image,(c[0],c[1]))
+        x, y = c.getPosition()
+        coinImage = c.getImage()
+        coin_animator.draw(screen_manager.getScreen(), x, y, False, False)
     
     # Enemies
 
@@ -193,13 +231,23 @@ while gameState is game.execute_action():
     # Lives
     for l in range((livespanel.showStatus())):
         screen_manager.getScreen().blit(lives_image,(200 + (l*50), 10))
-    #----------------------------Player Render------------------------------
-    if playerdirection.execute_action() == "right":
-        screen_manager.getScreen().blit(player.getImage(), (player_x, player_y))
-    elif playerdirection.execute_action() == "left":
-        screen_manager.getScreen().blit(pygame.transform.flip(player.getImage(), True, False), (player_x, player_y))
 
-    screen_manager.updateDisplay() # Update display
+
+    #----------------------------Player Render------------------------------
+    
+    if playeraction.execute_action() == "idle" and playerdirection.execute_action() == "right":
+        player_idleanimator.draw(screen_manager.getScreen(), player_x, player_y, False, False)
+
+    elif playeraction.execute_action() == "idle" and playerdirection.execute_action() == "left":
+        player_idleanimator.draw(screen_manager.getScreen(), player_x, player_y, True, False)
+
+    elif playerdirection.execute_action() == "right" and playeraction.execute_action() == "walking":
+        player_walkinganimator.draw(screen_manager.getScreen(), player_x, player_y, False, False)
+    
+    elif playerdirection.execute_action() == "left" and playeraction.execute_action() == "walking":
+        player_walkinganimator.draw(screen_manager.getScreen(), player_x, player_y, True, False)
+
+    
     clock.tick(60);
 
 

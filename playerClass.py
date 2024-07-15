@@ -19,6 +19,20 @@ class Player:
 
         self.image_path = "./images/dinosprites/dinovita/vita_00.png" # Ruta de la imagen
         self.load_image() #Atributo imagen
+        self.idle_animation = [
+            pygame.image.load("./images/dinosprites/dinovita/vita_00.png"),
+            pygame.image.load("./images/dinosprites/dinovita/vita_01.png"),
+            pygame.image.load("./images/dinosprites/dinovita/vita_02.png"),
+            pygame.image.load("./images/dinosprites/dinovita/vita_03.png")
+                            ]
+        self.walking_animation = [
+            pygame.image.load("./images/dinosprites/dinovita/vita_04.png"),
+            pygame.image.load("./images/dinosprites/dinovita/vita_05.png"),
+            pygame.image.load("./images/dinosprites/dinovita/vita_06.png"),
+            pygame.image.load("./images/dinosprites/dinovita/vita_07.png"),
+            pygame.image.load("./images/dinosprites/dinovita/vita_08.png"),
+            pygame.image.load("./images/dinosprites/dinovita/vita_09.png")
+        ]
         self.player_x = 300
         self.player_y = 0
         self.player_speed = 0
@@ -76,6 +90,12 @@ class Player:
     # Retorna atributo imagen
     def getImage(self):
         return self.image;
+
+    def getIdleAnimation(self):
+        return self.idle_animation;
+
+    def getWalkingAnimation(self):
+        return self.walking_animation;
 
     def getPlayerX(self):
         return self.player_x;
