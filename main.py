@@ -1,4 +1,5 @@
 import pygame
+import time
 from screenClass import GameScreen
 from playerClass import Player
 from controlsClass import InputHandler, CommandJumpMove, CommandLeftMove, CommandRightMove
@@ -7,12 +8,14 @@ from enemieClass import FactoryEnemySpike
 from gameStateClass import Game, PlayState, LoseState, WinState
 from dinamicClass import PlayerDirection, Left, Right, PlayerAction, IdleState, WalkingState, Animation
 from coinClass import CoinFactory
+from gameFacadeClass import GameFacade
 # Main
 
 game = Game();
 gameLose = LoseState();
 gamePlaying = PlayState();
 gameWin = WinState();
+gameFacade = GameFacade();
 
 screen_manager = GameScreen(700, 500, (181, 226, 245), "G&G Game"); # Game
 clock = pygame.time.Clock()
@@ -87,10 +90,14 @@ enemies = [
     enemyA,
     enemyB
 ]
+# Fall Barrier --------------------------------
+
+falling_barrier = [pygame.Rect(0, 560, 700, 50)]
 # Loop
 
 game.change_state(gamePlaying)
-gameState = "run"
+gameState = gameFacade.start_game()
+
 while gameState is game.execute_action():
 
     # Check for quit
@@ -127,6 +134,7 @@ while gameState is game.execute_action():
         playeraction.change_action(playerIdle)
 
     if keys[pygame.K_w] and player_on_ground:
+        gameFacade.sound_play("jump")
         player_speed = -6
         input_handler.handleInput(pygame.K_w)
 
@@ -176,22 +184,37 @@ while gameState is game.execute_action():
     for c in coins:
         coinColition = c.render();
         if coinColition.colliderect(player_rect):
+            gameFacade.sound_play("coin")
             coins.remove(c)
             player.colectCoin()
             if coinpanel.showStatus() == 5:
                 game.change_state(gameWin)
                 print("################# Ganaste! #################")
+    
     # Enemy Colition
 
     for e in enemies:
         enemyColition = e.render()
         if enemyColition.colliderect(player_rect):
+            gameFacade.sound_play("enemy")
             player.loseLives()
             player_x = 300
             player_y = 0
             player_speed = 0
             if livespanel.showStatus() <= 0:
                 game.change_state(gameLose) 
+                print("################# Perdiste :( #################")
+    
+    for f in falling_barrier:
+        if f.colliderect(new_player_rect):
+            gameFacade.sound_play("fall")
+            player.loseLives()
+            pygame.time.delay(1500)
+            player_x = 300
+            player_y = 0
+            player_speed = 0
+            if livespanel.showStatus() <= 0:
+                game.change_state(gameLose)
                 print("################# Perdiste :( #################")
     #----------------------------------------------------------------
     #----------------------------DRAWS-------------------------------
@@ -217,6 +240,8 @@ while gameState is game.execute_action():
 
         screen_manager.getScreen().blit(enemyImage,(x, y))
 
+    for f in falling_barrier:
+        pygame.draw.rect(screen_manager.getScreen(), (255, 0, 0), f)
 
     
     
@@ -247,7 +272,6 @@ while gameState is game.execute_action():
     elif playerdirection.execute_action() == "left" and playeraction.execute_action() == "walking":
         player_walkinganimator.draw(screen_manager.getScreen(), player_x, player_y, True, False)
 
-    
     clock.tick(60);
 
 
