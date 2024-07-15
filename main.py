@@ -4,7 +4,7 @@ from screenClass import GameScreen
 from playerClass import Player
 from controlsClass import InputHandler, CommandJumpMove, CommandLeftMove, CommandRightMove
 from observerClass import CoinPanel, LivesPanel
-from enemieClass import FactoryEnemySpike, MoveRightStrategy, MoveLeftStrategy
+from enemyClass import FactoryEnemySpike, MoveRightStrategy, MoveLeftStrategy
 from gameStateClass import Game, PlayState, LoseState, WinState
 from dinamicClass import PlayerDirection, Left, Right, PlayerAction, IdleState, WalkingState, Animation
 from coinClass import CoinFactory
