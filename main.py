@@ -4,11 +4,24 @@ from playerClass import Player
 from controlsClass import InputHandler, CommandJumpMove, CommandLeftMove, CommandRightMove
 from observerClass import CoinPanel, LivesPanel
 from enemieClass import FactoryEnemySpike
+from gameStateClass import Game, PlayState, LoseState, WinState
+from animationPlayerClass import PlayerDirection, Left, Right
 # Main
+
+game = Game();
+gameLose = LoseState();
+gamePlaying = PlayState();
+gameWin = WinState();
 
 screen_manager = GameScreen(700, 500, (181, 226, 245), "G&G Game"); # Game
 clock = pygame.time.Clock()
+
 player = Player();
+playerdirection = PlayerDirection();
+playerLeft = Left()
+playerRight = Right()
+playerdirection.change_direction(playerRight)
+
 coinpanel = CoinPanel(player)
 livespanel = LivesPanel(player)
 spikeEnemyFactory = FactoryEnemySpike();
@@ -56,23 +69,28 @@ enemies = [
     enemyB
 ]
 # Loop
-running = True
-while running:
+
+game.change_state(gamePlaying)
+gameState = "run"
+while gameState is game.execute_action():
+
     # Check for quit
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            running = False
+            gameState = False
     new_player_x = player_x
     new_player_y = player_y
 
-    #Controls
+    #----------------------- Controls------------------------
 
     keys = pygame.key.get_pressed();
 
     if keys[pygame.K_a]:
+        playerdirection.change_direction(playerLeft)
         new_player_x -= 2
         input_handler.handleInput(pygame.K_a)
     if keys[pygame.K_d]:
+        playerdirection.change_direction(playerRight)
         new_player_x += 2
         input_handler.handleInput(pygame.K_d)
     if keys[pygame.K_w] and player_on_ground:
@@ -124,7 +142,9 @@ while running:
         if c.colliderect(player_rect):
             coins.remove(c)
             player.colectCoin()
-
+            if coinpanel.showStatus() == 5:
+                game.change_state(gameWin)
+                print("################# Ganaste! #################")
     # Enemy Colition
 
     for e in enemies:
@@ -134,6 +154,9 @@ while running:
             player_x = 300
             player_y = 0
             player_speed = 0
+            if livespanel.showStatus() <= 0:
+                game.change_state(gameLose) 
+                print("################# Perdiste :( #################")
     #----------------------------------------------------------------
     #----------------------------DRAWS-------------------------------
     #----------------------------------------------------------------
@@ -171,10 +194,10 @@ while running:
     for l in range((livespanel.showStatus())):
         screen_manager.getScreen().blit(lives_image,(200 + (l*50), 10))
     #----------------------------Player Render------------------------------
-
-    screen_manager.getScreen().blit(player.getImage(), (player_x, player_y))
-
-
+    if playerdirection.execute_action() == "right":
+        screen_manager.getScreen().blit(player.getImage(), (player_x, player_y))
+    elif playerdirection.execute_action() == "left":
+        screen_manager.getScreen().blit(pygame.transform.flip(player.getImage(), True, False), (player_x, player_y))
 
     screen_manager.updateDisplay() # Update display
     clock.tick(60);
