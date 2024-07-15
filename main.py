@@ -4,7 +4,7 @@ from screenClass import GameScreen
 from playerClass import Player
 from controlsClass import InputHandler, CommandJumpMove, CommandLeftMove, CommandRightMove
 from observerClass import CoinPanel, LivesPanel
-from enemieClass import FactoryEnemySpike
+from enemieClass import FactoryEnemySpike, MoveRightStrategy, MoveLeftStrategy
 from gameStateClass import Game, PlayState, LoseState, WinState
 from dinamicClass import PlayerDirection, Left, Right, PlayerAction, IdleState, WalkingState, Animation
 from coinClass import CoinFactory
@@ -54,9 +54,10 @@ player_height = player.getPlayerHeight()
 
 # Platform Delete--------------------------------------------
 platforms = [
-    pygame.Rect(100, 300, 400, 50), # Platform
+    pygame.Rect(100, 300, 400, 20), # Main Platform
     pygame.Rect(100, 250, 50, 50), # Platform
     pygame.Rect(450, 250, 50, 50), # Platform
+    pygame.Rect(100, 460, 400, 50), # Bottom Platform
     ]
 
 # Coins ------------------------------------------------------------------------
@@ -65,13 +66,15 @@ coin2 = coinFactory.create("gold", 300, 200, 23, 23);
 coin3 = coinFactory.create("gold", 500, 200, 23, 23);
 coin4 = coinFactory.create("gold", 200, 100, 23, 23);
 coin5 = coinFactory.create("gold", 400, 100, 23, 23);
+coin6 = coinFactory.create("gold", 300, 350, 23, 23);
 
 coins = [
     coin1, 
     coin2, 
     coin3,
     coin4, 
-    coin5
+    coin5,
+    coin6
     ]
 
 coin_animator = Animation(coin1.getAnimation());
@@ -84,11 +87,17 @@ lives = livespanel.showStatus()
 # ------------------------------------ Enemies List ----------------------------
 
 
-enemyA = spikeEnemyFactory.create("A", 150, 274, 50, 26);
-enemyB = spikeEnemyFactory.create("B", 400, 274, 50, 26);
+enemyA = spikeEnemyFactory.create("A", 150, 274, 50, 26, MoveRightStrategy());
+enemy2A = spikeEnemyFactory.create("A", 400, 434, 50, 26, MoveLeftStrategy());
+enemy3A = spikeEnemyFactory.create("A", 150, 434, 50, 26, MoveRightStrategy());
+enemyB = spikeEnemyFactory.create("B", 400, 274, 50, 26, None);
+enemy2B = spikeEnemyFactory.create("B", 150, 274, 50, 26, None);
 enemies = [
     enemyA,
-    enemyB
+    enemy2A,
+    enemy3A,
+    enemyB,
+    enemy2B
 ]
 # Fall Barrier --------------------------------
 
@@ -187,7 +196,7 @@ while gameState is game.execute_action():
             gameFacade.sound_play("coin")
             coins.remove(c)
             player.colectCoin()
-            if coinpanel.showStatus() == 5:
+            if coinpanel.showStatus() == 6:
                 game.change_state(gameWin)
                 print("################# Ganaste! #################")
     
@@ -237,6 +246,7 @@ while gameState is game.execute_action():
     for e in enemies:
         x, y = e.getPosition()
         enemyImage = e.getImage()
+        e.move();
 
         screen_manager.getScreen().blit(enemyImage,(x, y))
 
