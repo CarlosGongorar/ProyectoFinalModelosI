@@ -25,8 +25,10 @@ class Player:
         self.player_acceleration = 0.2
         self.player_width = 45
         self.player_height = 51
-        self.observers = [];
+        self.observer_score = [];
+        self.observer_lives = [];
         self.score = 0;
+        self.lives = 3;
         self.player_on_ground = False;
 
     def load_image(self): # Cargado de imagen
@@ -48,17 +50,28 @@ class Player:
     
     def colectCoin(self):
         self.score += 1;
-        self.notify_observers();
+        self.notify_observerCoin();
+        
+    def loseLives(self):
+        self.lives -= 1;
+        self.notify_observerLives();
     
-    def add_observer(self, observer):
-        self.observers.append(observer);
+    def add_observer_score(self, observer):
+        self.observer_score.append(observer);
+    
+    def add_observer_lives(self, observer):
+        self.observer_lives.append(observer);
     
     def remove_observer(self, observer):
         self.observers.remove(observer);
     
-    def notify_observers(self):
-        for observer in self.observers:
+    def notify_observerCoin(self):
+        for observer in self.observer_score:
             observer.update(self.score);
+    
+    def notify_observerLives(self):
+        for observer in self.observer_lives:
+            observer.update(self.lives);
 
     # Retorna atributo imagen
     def getImage(self):
