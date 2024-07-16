@@ -1,4 +1,16 @@
-class CoinPanel:
+from abc import ABC, abstractmethod
+
+
+class Panel(ABC):
+    @abstractmethod
+    def showStatus(self):
+        pass
+    
+    @abstractmethod
+    def update(self):
+        pass
+
+class CoinPanel(Panel):
     def __init__(self, player):
         self.player = player
         self.player.add_observer_score(self)
@@ -12,7 +24,7 @@ class CoinPanel:
         #print(f"Total coins: {self.score}")
         return self.score
 
-class LivesPanel:
+class LivesPanel(Panel):
     def __init__(self, player):
         self.player = player
         self.player.add_observer_lives(self)
